@@ -54,7 +54,7 @@ const activeRooms = [] as string[];
 
 const io = new Server(parseInt(process.env.PORT) || 3000, {
   cors: {
-    origin: "https://irish-io-next-test.vercel.app/",
+    origin: "https://irish-poker-io.vercel.app/",
     // origin: "http://localhost:3001",
     methods: ["GET", "POST"],
   },
