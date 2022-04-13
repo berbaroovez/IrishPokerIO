@@ -75,7 +75,7 @@ const GameStarted = ({
       {userState?.yourTurn && gameState.isSomeoneGivingDrinks && (
         <GiveDrinkModal
           //playerlist is all player expect the one that matches userState.id
-
+          giverInfo={userState}
           playerList={gameState.players.filter(
             (player) => player.clientId !== userState.clientId
           )}

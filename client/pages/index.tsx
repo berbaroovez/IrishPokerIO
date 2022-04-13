@@ -29,7 +29,9 @@ const App = () => {
     console.log("Connecting to socket.io");
     //connect to socket.io
     // const socket = io("https://irish-test.herokuapp.com/", {});
-    const socket = io("https://protected-brook-41170.herokuapp.com/");
+    const socket = io(String(process.env.NEXT_PUBLIC_SOCKET_IO_URL))
+    // const socket = io("https://protected-brook-41170.herokuapp.com/")
+    ;
     // const socket = io("http://localhost:3000");
 
     console.log("socket", socket);
@@ -254,7 +256,7 @@ const App = () => {
   return (
     <GameArena>
       {/* <DebugMenu gameState={gameState} socketState={socketState} room={room}/> */}
-      <ToastButton
+      {/* <ToastButton
         onClick={() => {
           toast(`🍻 Take a drink `, {
             position: "bottom-center",
@@ -268,7 +270,7 @@ const App = () => {
         }}
       >
         Test Toast
-      </ToastButton>
+      </ToastButton> */}
       <AnimatePresence exitBeforeEnter>
         {gameState.status === "started" && (
           <GameStarted

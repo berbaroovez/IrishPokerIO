@@ -7,11 +7,12 @@ interface Props {
   socketState: Socket;
   playerList: Player[];
   room: string;
+  giverInfo: Player
 }
 
-const GiveDrinkModal = ({ socketState, playerList, room }: Props) => {
+const GiveDrinkModal = ({ socketState, playerList, room, giverInfo }: Props) => {
   const giveOutDrink = (player: Player) => {
-    socketState.emit("giveOutDrink", { player, room });
+    socketState.emit("giveOutDrink", { player, room, giverInfo });
     setTimeout(() => {
       socketState?.emit("update_whose_turn_it_is", { room: room });
       //emit that we are no longer giving out drinks

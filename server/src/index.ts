@@ -11,7 +11,7 @@ const io = new Server(
 	parseInt(process.env.PORT) || 3000,
 	{
 		cors: {
-			origin: "https://irish-poker-io.vercel.app",
+			origin: ["https://irish-poker-io.vercel.app", "http://localhost:3001"],
 			// origin: "http://localhost:3001",
 			methods: ["GET", "POST"],
 		},
@@ -360,15 +360,10 @@ io.on(
 			},
 		);
 
-		//player gives out drink
+		//player guessed correctly and is now giving out a dirnk
 		socket.on(
 			"giveOutDrink",
-			({ player, room }) => {
-				io.in(room).emit(
-					"takeADrink",
-					{ player: player.name, toastType: "playerGivingDrink" },
-				);
-
+			({ player, room, giverInfo }) => {
 				var gameIndex = -1;
 				var playerIndex = -1;
 				const game = connections.find(
@@ -380,6 +375,39 @@ io.on(
 					},
 				);
 
+				//now we must find the player that gaveout drinks
+				//find the player and update their cards
+				const playerThatGaveOutDrinks = game.players.find(
+					(player, index) => {
+						//storing index to use later
+						if (player.clientId === giverInfo.clientId) {
+							playerIndex = index;
+						}
+						return player.clientId === giverInfo.clientId;
+					},
+				);
+
+				playerThatGaveOutDrinks.drinksGiven += 2;
+				//now we must find the player that gaveout drinks
+				//find the player and update their cards
+				const playerThatHadToDrink = game.players.find(
+					(searchingPlayer, index) => {
+						//storing index to use later
+						if (searchingPlayer.clientId === player.clientId) {
+							playerIndex = index;
+						}
+						return searchingPlayer.clientId === player.clientId;
+					},
+				);
+				playerThatHadToDrink.drinksTaken += 2;
+
+				//player sends drink to front end
+				io.in(room).emit(
+					"takeADrink",
+					{ player: player.name, toastType: "playerGivingDrink" },
+				);
+
+				//this is checking for a end game state again we check once when they guess and then also after a drink is giving out
 				if (
 					connections[gameIndex].players[connections[gameIndex].players.length - 1].cards[3].Flipped === true
 				) {
@@ -390,12 +418,13 @@ io.on(
 						},
 						1000,
 					);
-					// connections[gameIndex].status = "finished";
+
 					io.in(room).emit("gameState", { gameState: connections[gameIndex] });
 				}
 			},
 		);
 
+		//debug function to flip the first three cards for everyone
 		socket.on(
 			"flipCards",
 			({ room }) => {
@@ -418,6 +447,8 @@ io.on(
 				io.in(room).emit("gameState", { gameState: connections[gameIndex] });
 			},
 		);
+
+		//the player guessed wrong and now they must drink
 		socket.on(
 			"guessIsWrong",
 			({ room, playerName }) => {
