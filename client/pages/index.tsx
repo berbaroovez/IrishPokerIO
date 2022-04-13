@@ -13,6 +13,7 @@ import GameStarted from "../components/GameStarted";
 import { ToastContainer, toast } from "react-toastify";
 import styled from "styled-components";
 import "react-toastify/dist/ReactToastify.css";
+import DebugMenu from "../components/DebugMenu";
 const App = () => {
   const [socketState, setSocketState] = useState<Socket | null>(null);
   const [username, setUsername] = useState("");
@@ -21,9 +22,6 @@ const App = () => {
   const [userState, setUserState] = useState<Player | null>(null);
   const [turnNumber, setTurnNumber] = useState(1);
 
-  const [drinkOrGive, setDrinkOrGive] = useState<
-    "give" | "drink" | "waitingForAnswer"
-  >("waitingForAnswer");
   //whoevers turn it is we set their index number
   const [turnIndex, setTurnIndex] = useState(0);
 
@@ -129,15 +127,31 @@ const App = () => {
 
       socketState.on("takeADrink", (data) => {
         console.log("take a drink 🍻🍺🍻🍺🍻🍺🍻🍺🍻🍺🍻🍺", data.player);
-        toast(`🍻 Take a drink ${data.player}`, {
+
+        if(data.toastType==="playerGivingDrink"){
+          toast(`🍻 Take a drink ${data.player}`, {
           position: "bottom-center",
-          autoClose: 3000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
+            autoClose: 3000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+          
+        }
+        else{
+          toast(`⛔ ${data.player} guessed wrong! They must drink!`, {
+          position: "bottom-center",
+            autoClose: 3000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+          
+        }
       });
     }
   }, [socketState]);
@@ -162,9 +176,12 @@ const App = () => {
 
   const updateDrinkOrGiveDrinks = (wasCorrect: boolean) => {
     if (wasCorrect) {
-      setDrinkOrGive("give");
+      //emit that we are in give state
+      socketState?.emit("updateIsSomeoneGivingOutDrinks", {
+        givingOutDrinks: true,
+        room,
+      });
     } else {
-      setDrinkOrGive("drink");
       //You go it wrong time to drink
       toast.error(`🍻 Take a drink`, {
         position: "bottom-center",
@@ -176,9 +193,13 @@ const App = () => {
         progress: undefined,
       });
 
+      socketState?.emit("guessIsWrong",{
+        room:room,
+        playerName:userState?.name
+      })
+
       setTimeout(() => {
         socketState?.emit("update_whose_turn_it_is", { room: room });
-        setDrinkOrGive("waitingForAnswer");
       }, 3000);
     }
   };
@@ -187,6 +208,10 @@ const App = () => {
 
   const handleGuess = (guess: string) => {
     if (userState !== null) {
+      socketState?.emit("updateHideButtons", {
+        hideButtons: true,
+        room,
+      });
       const data = isGuessCorrect(guess, turnNumber, userState);
       if (data !== undefined) {
         updateDrinkOrGiveDrinks(data.userGuessCorrect);
@@ -215,16 +240,20 @@ const App = () => {
 
   if (gameState.status === "lobby" && userState) {
     return (
+      <>
+      {/* <DebugMenu gameState={gameState}/> */}
       <Lobby
         startGame={startGame}
         userState={userState}
         gameState={gameState}
       />
+      </>
     );
   }
 
   return (
     <GameArena>
+      {/* <DebugMenu gameState={gameState} socketState={socketState} room={room}/> */}
       <ToastButton
         onClick={() => {
           toast(`🍻 Take a drink `, {
@@ -248,8 +277,6 @@ const App = () => {
             turnIndex={turnIndex}
             userState={userState}
             turnNumber={turnNumber}
-            drinkOrGive={drinkOrGive}
-            setDrinkOrGive={setDrinkOrGive}
             socketState={socketState}
             handleGuess={handleGuess}
           />

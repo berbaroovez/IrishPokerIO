@@ -12,10 +12,7 @@ interface props {
   turnIndex: number;
   userState: Player | null;
   turnNumber: number;
-  drinkOrGive: "give" | "drink" | "waitingForAnswer";
-  setDrinkOrGive: React.Dispatch<
-    React.SetStateAction<"give" | "drink" | "waitingForAnswer">
-  >;
+
   socketState: Socket | null;
   room: string;
   handleGuess: (guess: string) => void;
@@ -25,8 +22,7 @@ const GameStarted = ({
   turnIndex,
   userState,
   turnNumber,
-  drinkOrGive,
-  setDrinkOrGive,
+
   socketState,
   room,
   handleGuess,
@@ -55,6 +51,7 @@ const GameStarted = ({
         <AnimatePresence initial={false} exitBeforeEnter>
           <PlayerInfo
             className="players"
+            //this works for animate presence because we are changing the key every time its a different players turn
             key={turnIndex}
             initial={{ opacity: 0, x: 1000 }}
             animate={{ opacity: 1, x: 0 }}
@@ -69,17 +66,16 @@ const GameStarted = ({
           </PlayerInfo>
         </AnimatePresence>
         <AnimatePresence>
-          {userState?.yourTurn &&
-            gameState.status &&
-            drinkOrGive === "waitingForAnswer" && (
-              <GuessButtons turnNumber={turnNumber} whichGuess={handleGuess} />
-            )}
+          
+          {userState?.yourTurn && gameState.isSomeoneGivingDrinks === false && gameState.hideButtons===false &&(
+            <GuessButtons turnNumber={turnNumber} whichGuess={handleGuess} />
+          )}
         </AnimatePresence>
       </PlayerInfoZone>
-      {userState?.yourTurn && drinkOrGive === "give" && (
+      {userState?.yourTurn && gameState.isSomeoneGivingDrinks && (
         <GiveDrinkModal
           //playerlist is all player expect the one that matches userState.id
-          setDrinkOrGive={setDrinkOrGive}
+
           playerList={gameState.players.filter(
             (player) => player.clientId !== userState.clientId
           )}

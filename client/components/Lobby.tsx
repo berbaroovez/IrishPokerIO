@@ -13,7 +13,11 @@ const Lobby = ({ startGame, gameState, userState }: LobbyProps) => {
     <LobbyZone>
       <div>
         <h1>{gameState.roomId} Waiting Room</h1>
-        {userState?.host && <button onClick={startGame}>Start Game</button>}
+
+        {
+          gameState.players.length > 1 ? userState?.host && <button onClick={startGame}>Start Game</button> :"Waiting for more players to join"
+        }
+      
 
         <PlayerZone>
           {gameState.players.map((player) => {

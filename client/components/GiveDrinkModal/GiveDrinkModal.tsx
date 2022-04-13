@@ -7,23 +7,19 @@ interface Props {
   socketState: Socket;
   playerList: Player[];
   room: string;
-  setDrinkOrGive: React.Dispatch<
-    React.SetStateAction<"give" | "drink" | "waitingForAnswer">
-  >;
 }
 
-const GiveDrinkModal = ({
-  socketState,
-  playerList,
-  room,
-  setDrinkOrGive,
-}: Props) => {
+const GiveDrinkModal = ({ socketState, playerList, room }: Props) => {
   const giveOutDrink = (player: Player) => {
     socketState.emit("giveOutDrink", { player, room });
     setTimeout(() => {
       socketState?.emit("update_whose_turn_it_is", { room: room });
-      setDrinkOrGive("waitingForAnswer");
-    }, 1000);
+      //emit that we are no longer giving out drinks
+      socketState?.emit("updateIsSomeoneGivingOutDrinks", {
+        givingOutDrinks: false,
+        room,
+      });
+    }, 4000);
   };
 
   return (
